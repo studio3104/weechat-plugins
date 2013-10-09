@@ -25,6 +25,7 @@ See here: http://notifo.com/
 import weechat
 import urllib
 import hashlib
+import datetime
 
 ## registration
 
@@ -49,15 +50,16 @@ if weechat.config_get_plugin("password") == "" and weechat.config_get_plugin("se
 
 ## functions
 
-def postIm(message, handler=None, label=None, title=None, buffer_name=None, prefix=None):
+def postIm(message, date, handler=None, label=None, title=None, buffer_name=None, prefix=None):
     USERNAME  = weechat.config_get_plugin("username")
     PASSWORD  = weechat.config_get_plugin("password")
     SECRETKEY = weechat.config_get_plugin("secretkey")
 
     if USERNAME != "":
         url = "http://im.kayac.com/api/post/" + USERNAME
+        dt = datetime.datetime.fromtimestamp(float(date)).strftime('%Y-%m-%d %H:%M:%S')
         opt_dict = {
-            "message": "[%s][%s] - %s\n%s %s" % (label, buffer_name, title, prefix, message),
+            "message": "(%s)\n[%s][%s] - %s\n%s %s" % (dt, label, buffer_name, title, prefix, message),
             }
 
         if PASSWORD != "":
@@ -77,9 +79,9 @@ def hook_process_cb(data, command, rc, stdout, stderr):
 def print_callback(data, buffer, date, tags, displayed, highlight, prefix, message):
     buffer_name = weechat.buffer_get_string(buffer, "name")
     if highlight == "1":
-        postIm(message, label="weechat", title="Highlight", buffer_name=buffer_name, prefix=prefix)
+        postIm(message, date, label="weechat", title="Highlight", buffer_name=buffer_name, prefix=prefix)
     elif "notify_private" in tags.split(','):
-        postIm(message, label="weechat", title="Private Message", buffer_name=buffer_name, prefix=prefix)
+        postIm(message, date, label="weechat", title="Private Message", buffer_name=buffer_name, prefix=prefix)
     return weechat.WEECHAT_RC_OK
 
 weechat.hook_print("", "", "", 1, "print_callback", "");
